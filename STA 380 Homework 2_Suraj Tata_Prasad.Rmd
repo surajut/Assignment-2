@@ -1,0 +1,430 @@
+---
+title: "JS_Asgnt2"
+output: word_document
+---
+
+##Question 1 - Flights at ABIA
+###Imported the dataset and loaded the dplyr library that helps with data manipulations
+
+```{r include = FALSE, warning = FALSE, messages = FALSE}
+flights = read.csv('C:/Users/Suraj/Desktop/James Scott 2/Assignment/Assignment 2/ABIA.csv')
+library(dplyr)
+flights2 = flights
+head(flights2)
+```
+
+### Cheking for the worst time in the year to fly by plotting the average delay time in minutes across all months
+* Converting the 'days of the month' and 'months of the year' into factors. They are currently continuous variables.
+* Also replacing 'NA's in the dataset with '0' to avoid data wrangling issues 
+
+
+```{r, results = "hide"}
+flights2$DayofMonth = as.factor(flights2$DayofMonth)
+flights2$DayOfWeek = as.factor(flights2$DayOfWeek)
+flights2$Month = as.factor(flights2$Month)
+flights2[is.na(flights2)]= 0
+```
+
+* Considering only arrival and departure delays initially to evaluate the worst time to fly
+* Creating a trendline showing the average delay across the months and highlighting the worst and best times to fly
+
+```{r, echo = FALSE}
+
+
+arrdelay_avg = aggregate(flights2$ArrDelay, by=list(flights2$Month), FUN=mean, na.rm=TRUE)
+ymin = min(arrdelay_avg$x)
+ymax = (max(arrdelay_avg$x) + 5)
+
+plot(arrdelay_avg$x, type = "l", xlab= "Month", ylab = "Average Delay in Minutes",col ="orange", lwd = "3",ylim=c(ymin, ymax))
+
+
+depdelay_avg = aggregate(flights2$DepDelay, by=list(flights2$Month), FUN=mean, na.rm=TRUE)
+lines(depdelay_avg$x, type="l",col ="purple", lwd="3")
+
+legend('bottomleft',c("Arr Delay","Dep Delay"),lty=1, col=c("orange","purple"))
+
+points(which.max(arrdelay_avg$x),max(arrdelay_avg$x),lwd=3,col="green")
+points(which.min(arrdelay_avg$x),min(arrdelay_avg$x),lwd=3,col="red")
+
+points(which.max(depdelay_avg$x),max(depdelay_avg$x),lwd=3,col="green")
+points(which.min(depdelay_avg$x),min(depdelay_avg$x),lwd=3,col="red")
+
+```
+
+* It is clear that December is the worst month to fly and September is the best month to fly. One of the more probable explanation is : December is vacation time and one of the busiest time for airlines and airports. September is the begining of college/school season leading to lesser travel during this month. (observed that flight tickets are also cheapest during september-october and most expensive during Decmeber-Jan period)
+* The cascading effect of the arrival delay onto the departure delay or vice-versa can be observed in the graph (they both go hand-in-hand)
+** Similarly, plotting for weekly average delay below:**
+
+
+```{r, echo = FALSE}
+
+arrdelay_avg2 = aggregate(flights2$ArrDelay, by=list(flights2$DayOfWeek), FUN=mean, na.rm=TRUE)
+ymin2 = min(arrdelay_avg2$x)
+ymax2 = (max(arrdelay_avg2$x) + 5)
+
+plot(arrdelay_avg2$x, type = "l", xlab= "Day", ylab = "Average Delay in Minutes",col ="orange", lwd = "3",ylim=c(ymin2, ymax2))
+
+depdelay_avg2 = aggregate(flights2$DepDelay, by=list(flights2$DayOfWeek), FUN=mean, na.rm=TRUE)
+lines(depdelay_avg2$x, type="l",col ="purple", lwd="3")
+
+legend('bottomleft',c("Arr Delay","Dep Delay"),lty=1, col=c("orange","purple"))
+
+points(which.max(arrdelay_avg2$x),max(arrdelay_avg2$x),lwd=3,col="green")
+
+
+points(which.max(depdelay_avg2$x),max(depdelay_avg2$x),lwd=3,col="green")
+
+
+```
+
+* We can see that Fridays have the highest average delay followed by Sundays - the days that mark the begining and end of the weekend. These again are the busiest times of the week, because people are either flying out of their cities for the weekend or flying back in at the end of the weekend.
+**There is a more granular breakdown of delays in the dataset. Plotting similar line plots for these delays to analyse their effect on Arrival and Departure delay**
+
+```{r, echo=FALSE}
+
+
+attach(flights2)
+
+aggdepdelay = aggregate(DepDelay,by = list(DayOfWeek), FUN = mean, na.rm= TRUE)
+aggarrdelay = aggregate(ArrDelay,by = list(DayOfWeek), FUN = mean, na.rm= TRUE)
+aggsecdelay = aggregate(SecurityDelay,by = list(DayOfWeek), FUN = mean, na.rm= TRUE)
+aggcardelay = aggregate(CarrierDelay,by = list(DayOfWeek), FUN = mean, na.rm= TRUE)
+aggweatdelay = aggregate(WeatherDelay,by = list(DayOfWeek), FUN = mean, na.rm= TRUE)
+aggNASdelay = aggregate(NASDelay,by = list(DayOfWeek), FUN = mean, na.rm= TRUE)
+agglatefldelay = aggregate(LateAircraftDelay,by = list(DayOfWeek), FUN = mean, na.rm= TRUE)
+
+
+#Aggregating the departure and arrival delays by month of the year
+aggdepdelaymonth = aggregate(DepDelay,by = list(Month), FUN = mean, na.rm= TRUE)
+aggarrdelaymonth = aggregate(ArrDelay,by = list(Month), FUN = mean, na.rm= TRUE)
+aggsecdelaymonth = aggregate(SecurityDelay,by = list(Month), FUN = mean, na.rm= TRUE)
+aggcardelaymonth = aggregate(CarrierDelay,by = list(Month), FUN = mean, na.rm= TRUE)
+aggweatdelaymonth = aggregate(WeatherDelay,by = list(Month), FUN = mean, na.rm= TRUE)
+aggNASdelaymonth = aggregate(NASDelay,by = list(Month), FUN = mean, na.rm= TRUE)
+agglatefldelaymonth = aggregate(LateAircraftDelay,by = list(Month), FUN = mean, na.rm= TRUE)
+
+
+
+
+plot(aggdepdelay$x, type ="b", xlab = "Day of Week", ylab = "Average Delay in minutes", col = "purple", lwd = 3, ylim = c(1,30) )
+lines(aggarrdelay$x, type = "b", col = "green", lwd = 3)
+lines(aggsecdelay$x, type = "l", col = "deeppink4", lwd = 3)
+lines(aggcardelay$x, type = "l", col = "yellow", lwd = 3)
+lines(aggweatdelay$x, type = "l", col = "black", lwd = 3)
+lines(aggNASdelay$x, type = "l", col = "pink", lwd = 3)
+lines(agglatefldelay$x, type = "l", col = "red", lwd = 3)
+legend ("topright", c("Departure Delay", "Arrival Delay", "Delay due to Security", "Carrier Delay", "Weather Delay", "NAS Delay", "LateAircraft Delay"), lty = 1, col = c('purple','green', 'deeppink4','yellow', 'black', 'pink', 'red'))
+
+
+#Creating a plot that shows the aggregate departure, arrival delays, Security delays, Carrier Delays, Weather Delays, NAS delays, LateAircraft Delays for each month of the year
+
+plot(aggdepdelaymonth$x, type ="b", xlab = "Month of Year", ylab = "Average Delay in minutes", col = "purple", lwd = 3, ylim = c(1,30))
+lines(aggarrdelaymonth$x, type = "b", col = "green", lwd = 3)
+lines(aggsecdelaymonth$x, type = "l", col = "deeppink4", lwd = 3)
+lines(aggcardelaymonth$x, type = "l", col = "yellow", lwd = 3)
+lines(aggweatdelaymonth$x, type = "l", col = "black", lwd = 3)
+lines(aggNASdelaymonth$x, type = "l", col = "pink", lwd = 3)
+lines(agglatefldelaymonth$x, type = "l", col = "red", lwd = 3)
+legend ("topright", c("Departure Delay", "Arrival Delay", "Delay due to Security", "Carrier Delay", "Weather Delay", "NAS Delay", "LateAircraft Delay"), lty = 1, col = c('purple','green', 'deeppink4','yellow', 'black', 'pink', 'red'))
+
+
+```
+
+**Conclusion:
+* Can be observed that Weather delay and Security delay do not vary much across months/days of week and do not contribute much to the overall delay
+* The Late-Aircraft delay is the most dominant factor : Arrival delay at an airport due to the late arrival of the same aircraft at a previous airport. The ripple effect is significant
+* Carrier delay is the next biggest contributing factor :  Carrier delays can be due to aircraft cleaning, aircraft damage, awaiting the arrival of connecting passengers or crew, baggage, bird strike, cargo loading, catering. 
+* But carrier delay is something that the aircraft carriers can control for. Hence they should try and minimize this component when other delays which are not under their control are high  
+
+****************************************************************************
+
+
+##Question 2 - Author Attribution
+
+### Importing all the necessary libraries
+
+```{r include = FALSE, warning = FALSE, messages = FALSE}
+library(tm)
+library(randomForest)
+library(e1071)
+library(rpart)
+library(ggplot2)
+library(caret)
+library(plyr)
+```
+
+
+### Defining a Reader plain function that wraps around the ReadPlain function and reads in the data
+
+```{r, results = "hide"}
+readerPlain = function(fname){
+readPlain(elem=list(content=readLines(fname)), id=fname, language='en') }
+```
+
+###Creating the Training Corpus
+* Creating a file list for all 2500 docs being imported and assigning author names to each one of them
+
+```{r, results = "hide"}
+author_dirs_train = Sys.glob('C:/Users/Suraj/Desktop/James Scott/STA380-master/data/ReutersC50/C50train/*')
+
+file_list_train = NULL
+train_labels = NULL
+
+for(author in author_dirs_train) {
+  author_name = substring(author, first=75)
+  files_to_add = Sys.glob(paste0(author, '/*.txt'))
+  file_list_train = append(file_list_train, files_to_add)
+  train_labels = append(train_labels, rep(author_name, length(files_to_add)))
+}
+
+```
+
+###Applying the ReaderPlain function for all the documents so that they will be read/imported in a certain manner
+
+
+```{r, results = "hide"}
+all_docs_train = lapply(file_list_train, readerPlain) 
+names(all_docs_train) = file_list_train
+names(all_docs_train) = sub('.txt', '', names(all_docs_train))
+```
+
+###Creating a Corpus from the 'list' which has all the text from all the 'C50train' documents 
+
+```{r, results = "hide"}
+train_corpus = Corpus(VectorSource(all_docs_train))
+names(train_corpus) = file_list_train
+
+```
+
+###Performing certain pre-processing steps on the Training Corpus like:
+* Removing numbers, punctuation(no emoticons here), whitespaces 
+* Convert to lower case
+* Remove certain words, specified here under the 'SMART' kind of stopwords
+
+```{r, results = "hide"}
+train_corpus = tm_map(train_corpus, content_transformer(removeNumbers)) 
+train_corpus = tm_map(train_corpus, content_transformer(removePunctuation))
+train_corpus = tm_map(train_corpus, content_transformer(tolower)) 
+train_corpus = tm_map(train_corpus, content_transformer(stripWhitespace)) 
+train_corpus = tm_map(train_corpus, content_transformer(removeWords), stopwords("SMART"))
+```
+
+###Creating a Document Term Matrix, where each row represents a document and each column represents a unique word from the entire corpus. The entries in this matrix are the counts for each of the words
+
+```{r, results = "hide"}
+DTM_train = DocumentTermMatrix(train_corpus)
+DTM_train = removeSparseTerms(DTM_train, 0.96)
+```
+*************************************************************************
+###Creating the Testing corpus
+* Creating a file list for all 2500 docs being imported and assigning author names to each one of them
+
+```{r, results = "hide"}
+author_dirs_test = Sys.glob('C:/Users/Suraj/Desktop/James Scott/STA380-master/data/ReutersC50/C50test/*')
+file_list_test = NULL
+test_labels = NULL
+for(author in author_dirs_test) {
+  author_name = substring(author, first=74)
+  files_to_add = Sys.glob(paste0(author, '/*.txt'))
+  file_list_test = append(file_list_test, files_to_add)
+  test_labels = append(test_labels, rep(author_name, length(files_to_add)))
+}
+```
+
+
+###Applying the ReaderPlain function for all the documents so that they will be read/imported in a certain manner
+
+```{r, results = "hide"}
+all_docs_test = lapply(file_list_test, readerPlain) 
+names(all_docs_test) = file_list_test
+names(all_docs_test) = sub('.txt', '', names(all_docs_test))
+```
+
+###Creating a Corpus from the 'list' which has all the text from all the 'C50test' documents 
+
+```{r, results = "hide"}
+test_corpus = Corpus(VectorSource(all_docs_test))
+names(test_corpus) = file_list_test
+```
+
+###Performing certain pre-processing steps on the Training Corpus like:
+* Removing numbers, punctuation(no emoticons here), whitespaces 
+* Convert to lower case
+* Remove certain words, specified here under the 'SMART' kind of stopwords
+
+```{r, results = "hide"}
+test_corpus = tm_map(test_corpus, content_transformer(removeNumbers)) 
+test_corpus = tm_map(test_corpus, content_transformer(removePunctuation))
+test_corpus = tm_map(test_corpus, content_transformer(tolower)) 
+test_corpus = tm_map(test_corpus, content_transformer(stripWhitespace)) 
+test_corpus = tm_map(test_corpus, content_transformer(removeWords), stopwords("SMART"))
+
+```
+
+###Standardizing the words in Test and Training dataset so that the test and train matrices match
+* Creating a dictionary of words based on the training corpus
+* Extracting these words from the test corpus
+
+```{r, results = "hide"}
+dict_train_words = NULL
+dict_train_words = dimnames(DTM_train)[[2]]
+```
+
+###Creating the testing DTM using words from the training dictionary 
+
+```{r, results = "hide"}
+DTM_test = DocumentTermMatrix(test_corpus, list(dictionary=dict_train_words))
+DTM_test = removeSparseTerms(DTM_test, 0.96)
+```
+
+###Converting DTMs to data frames
+* Document Term matrices in their form do not work well for application of classifier models. Hence, will convert them to data frames
+* The dataset is now in a format that can be used for classification models
+
+```{r, results="hide" }
+DTM_train_df = as.data.frame(inspect(DTM_train))
+DTM_test_df = as.data.frame(inspect(DTM_test))
+```
+
+*************************************************************************
+##Naive Bayes model
+* Running the Naive Bayes model to predict the authors of the docs in the Test dataset
+* The naiveBayes function accounts for words not seen in training dataset through Laplace smoothing. (laplace = 1)
+
+```{r, results = "hide"}
+NB_Model = naiveBayes(x=DTM_train_df, y=as.factor(train_labels), laplace=1)
+NB_prediction = predict(NB_Model, DTM_test_df)
+```
+
+* Creating a confusion matrix to calculate the accuracy of the model in predicting the authors
+* Sensitivity column gives the accuracy % of predicting the documents under each of the authors correctly
+* I have defined the accuracy of the model as the average of the accuracy measures for all the authors
+
+```{r}
+
+CM_NB = confusionMatrix(table(NB_prediction,test_labels))
+CM_NB_df = as.data.frame(CM_NB$byClass)
+CM_NB_df[order(-CM_NB_df$Sensitivity),][1]
+
+Accuracy = mean(CM_NB_df$Sensitivity)
+```
+
+* Conclusion : The model has worked really well for a few authors like LydiaZajc, PeterHumphrey and RogerFillion. But for the majority of authors it hasn't been able to predict well. The accuracy % is low at around 25%.  
+
+***************************************************************************
+##Random Forest model
+###Converting Document term matrices into regular matrices, so that we can RandomForest model on it
+* In it's current form however, Random Forest still cannot be applied because the number of columns in both the matrices is different  
+
+```{r, results = "hide"}
+
+DTM_test = as.matrix(DTM_test)
+DTM_train = as.matrix(DTM_train)
+
+```
+
+
+* One way to get around this problem is to append empty columns into the smaller matrix(test dataset in this case) before running Random Forest on them
+* Below we are creating a dataframe from test dataset which has all the words occuring in the train dataset, but no words that occur in test but not in train
+* For those words that did not occur in the 'C50Test' documents, the count will be 'NA'  
+
+```{r, results = "hide"}
+
+com_data <- data.frame(DTM_test[,intersect(colnames(DTM_test), colnames(DTM_train))])
+eq_cols <- read.table(textConnection(""), col.names = colnames(DTM_train), colClasses = "integer")
+DTM_test_common = rbind.fill(com_data, eq_cols)
+```
+
+* We can now run RandomForest model using the dataset which is in the required format
+* And then predict using the model  
+
+```{r, results = "hide"}
+RF_model = randomForest(x=DTM_train_df, y=as.factor(train_labels), mtry=4, ntree=200)
+RF_predicted = predict(RF_model, data = DTM_test_common)
+```
+
+###Checking for model performance
+```{r, results = "hide"}
+RF_con_mat = confusionMatrix(table(RF_predicted,test_labels))
+```
+
+```{r}
+
+RF_con_mat$overall
+```
+
+**Conclusion : The accuracy of the RF model comes out to be about 72%. This means that given a test document, the RF model can guess the right author 72 out of 100 times. This accuracy rate is much higher than that of the Naive Bayes model which had an accuracy of around 25%. Hence Random Forest does better than Naive Bayes for the Reuters example**  
+
+***************************************************************************
+##Question 3 - Association Rule Mining
+###Import the necessary libraries
+
+```{r include = FALSE, warning = FALSE, messages = FALSE}
+library(arules)
+```
+
+###Importing dataset using 'read.transactions'. This function let's you import the dataset in the format which 'arules' can use
+
+```{r, results = "hide"}
+groceries = read.transactions('https://raw.githubusercontent.com/jgscott/STA380/master/data/groceries.txt', format = 'basket', sep = ',', rm.duplicates = FALSE)
+```
+
+###Running the apriori algorithm on the dataset to generate association rules.
+* Initially running 'apriori' with random values for the 'Support' and 'Confidence' parameters and checking the rules generated
+
+```{r, results = "hide"}
+groc_rules <- apriori(groceries, parameter=list(support=.01, confidence=.5, maxlen=6))
+
+```
+
+* The 15 rules generated here are the set of all possible association rules which have a support and confidence greater than the thresholds provided
+
+```{r}
+
+inspect(groc_rules)
+```
+
+###Creating subsets of these association rules by altering the 'support', 'confidence' and 'lift' parameters and observing which association rules are filtered out
+
+* 'Lift' is the increase in probability of the "consequent" itemset given the "if" (antecedent) itemset.
+* Hence, higher the Lift, stronger is the association between the two itemsets in the association rule 
+* To filter out only the strong association rules we can subset for those rules which have high Lift
+* In this example, no rules have a lift greater than 3.5  
+
+```{r}
+
+inspect(subset(groc_rules, subset=lift > 3))
+```
+
+* We could get rules with a Lift greater than 3 but for that we will have to reduce the minimum 'Support' thresholds.
+* This would give us rules where the association is stronger but, because 'Support' is low for them, the count of itemsets that show up in these rules are too low to be considered significant from a sales perspective.
+* Similarly, getting high values of lift when 'Confidence' is low does not help, because this happens only when 'Expected Confidence' is also low. Such itemsets and the resultant association rules which have low 'Expected Confidence' may not be considered significant from a sales perspective.
+  
+**The highest values for 'Support' and 'Confidence' below which none of the rules show up are given below**
+
+```{r, results = "hide"}
+inspect(subset(groc_rules, subset=lift > 3))
+inspect(subset(groc_rules, subset=confidence > 0.58))
+inspect(subset(groc_rules, subset=support > .011 & confidence > 0.58))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
